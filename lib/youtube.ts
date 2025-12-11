@@ -64,7 +64,7 @@ function decodeHtmlEntities(value: string): string {
 }
 
 function parseRssFeed(xml: string): LatestVideo[] {
-  const entries = [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)];
+  const entries = Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g));
 
   const videos =
     entries
