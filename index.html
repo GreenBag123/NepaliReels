@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nepali Reels | Hero</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --bg-soft: #111824;
+      --accent: #d8a55b;
+      --accent-2: #4cb3a3;
+      --text: #e9edf2;
+      --muted: #9fb0c4;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Manrope', 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 7vw, 6.5rem);
+      overflow: hidden;
+      isolation: isolate;
+      background: radial-gradient(120% 120% at 20% 20%, rgba(76, 179, 163, 0.18), transparent 55%),
+                  radial-gradient(100% 100% at 80% 10%, rgba(216, 165, 91, 0.16), transparent 60%),
+                  linear-gradient(135deg, #0b0f14 0%, #0f141c 35%, #0b0f14 100%);
+    }
+
+    .hero::before,
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      background: radial-gradient(60% 60% at 70% 60%, rgba(216, 165, 91, 0.08), transparent 50%);
+      filter: blur(40px);
+      opacity: 0.75;
+      z-index: 0;
+    }
+
+    .hero::after {
+      background: radial-gradient(50% 50% at 25% 70%, rgba(76, 179, 163, 0.08), transparent 55%);
+      transform: rotate(-8deg);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      display: grid;
+      gap: 1.75rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      color: var(--muted);
+      font-size: 0.9rem;
+      letter-spacing: 0.03em;
+      width: fit-content;
+      backdrop-filter: blur(6px);
+    }
+
+    .eyebrow::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 0 6px rgba(216, 165, 91, 0.08);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: 'Marcellus', 'Manrope', serif;
+      font-size: clamp(2.8rem, 7vw, 4.4rem);
+      line-height: 1.08;
+      letter-spacing: 0.01em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .subtext {
+      margin: 0;
+      max-width: 600px;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.85rem 1.35rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+      font-size: 0.98rem;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), #c18c42);
+      color: #0b0f14;
+      box-shadow: 0 10px 40px rgba(216, 165, 91, 0.25);
+    }
+
+    .btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 48px rgba(216, 165, 91, 0.32);
+    }
+
+    .btn.secondary {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .btn.secondary:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    @media (max-width: 640px) {
+      .hero {
+        padding: 2.5rem 1.5rem 2.8rem;
+      }
+
+      h1 {
+        font-size: clamp(2.4rem, 9vw, 3.4rem);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="hero">
+    <div class="hero-content">
+      <div class="eyebrow">NEPAL | CINEMATIC REELS</div>
+      <h1>Nepali Reels</h1>
+      <p class="subtext">Moments. Stories. Aesthetics of Nepal.</p>
+      <div class="actions">
+        <a class="btn primary" href="#" aria-label="Explore Nepali reels">Explore Reels</a>
+        <a class="btn secondary" href="#" aria-label="Watch Nepali Reels on YouTube">Watch on YouTube</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

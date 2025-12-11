@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --nr-blue: #0054A6;
+  --nr-red: #D62828;
+  --nr-bg-primary: #0A0B0D;
+  --nr-bg-secondary: #0E0F12;
+  --nr-ice: #E5ECF5;
+  --nr-text-soft: #C9CDD6;
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--nr-bg-primary)] text-textsoft antialiased;
+    background:
+      linear-gradient(180deg, rgba(0, 84, 166, 0.12) 0%, #0d1016 42%, #0a0b0d 100%);
+  }
+
+  ::selection {
+    background: rgba(0, 84, 166, 0.28);
+    color: #e5ecf5;
+  }
+}
+
+@layer utilities {
+  .surface {
+    @apply bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl;
+  }
+
+  .surface-blue {
+    @apply border border-logoBlue/30 backdrop-blur-xl rounded-xl;
+  }
+
+  .glass {
+    @apply bg-black/20 backdrop-blur-xl border-b border-white/10;
+  }
+
+  .glow-ring {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 18px 55px rgba(0, 84, 166, 0.24);
+  }
+
+  .vignette {
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.06), transparent 70%);
+  }
+
+  .ribbon-mask {
+    mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
+    mask-size: 100% 100%;
+    -webkit-mask-size: 100% 100%;
+    pointer-events: none;
+  }
+
+  .fade-soft {
+    animation: fadeIn 1.15s ease forwards;
+  }
+
+  .parallax-layer {
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .no-glow {
+    box-shadow: none !important;
+    filter: none !important;
+  }
+}
+
+@keyframes ribbon-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ribbon-scroll {
+  animation: ribbon-scroll 90s linear infinite;
+  will-change: transform;
+}
