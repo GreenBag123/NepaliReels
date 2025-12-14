@@ -126,6 +126,7 @@ export default function Hero() {
             {/* ORIGINAL CLIPS */}
             {clips.map((clip, idx) => (
               <motion.div
+                key={`desktop-wrapper-${idx}`}
                 className="relative"
                 style={{
                   filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
@@ -141,6 +142,7 @@ export default function Hero() {
             {/* DUPLICATE CLIPS FOR LOOP */}
             {clips.map((clip, idx) => (
               <motion.div
+                key={`desktop-dup-wrapper-${idx}`}
                 className="relative"
                 style={{
                   filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
@@ -167,6 +169,7 @@ export default function Hero() {
           >
             {clips.map((clip, idx) => (
               <motion.div
+                key={`mobile-wrapper-${idx}`}
                 className="relative"
                 style={{
                   filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
@@ -180,6 +183,7 @@ export default function Hero() {
             ))}
             {clips.map((clip, idx) => (
               <motion.div
+                key={`mobile-dup-wrapper-${idx}`}
                 className="relative"
                 style={{
                   filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
