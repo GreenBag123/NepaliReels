@@ -126,7 +126,7 @@ export default function Hero() {
             {/* ORIGINAL CLIPS */}
             {clips.map((clip, idx) => (
               <motion.div
-                key={`desktop-wrapper-${idx}`}
+                key={idx}
                 className="relative"
                 style={{
                   filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
@@ -135,14 +135,14 @@ export default function Hero() {
                   rotateY: idx < Math.floor(clips.length / 2) ? -7 : idx > Math.floor(clips.length / 2) ? 7 : 0
                 }}
               >
-                <RibbonClip key={`desktop-${idx}`} clip={clip} index={idx} />
+                <RibbonClip clip={clip} index={idx} />
               </motion.div>
             ))}
 
             {/* DUPLICATE CLIPS FOR LOOP */}
             {clips.map((clip, idx) => (
               <motion.div
-                key={`desktop-dup-wrapper-${idx}`}
+                key={idx}
                 className="relative"
                 style={{
                   filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
@@ -151,7 +151,7 @@ export default function Hero() {
                   rotateY: idx < Math.floor(clips.length / 2) ? -7 : idx > Math.floor(clips.length / 2) ? 7 : 0
                 }}
               >
-                <RibbonClip key={`desktop-dup-${idx}`} clip={clip} index={idx} />
+                <RibbonClip clip={clip} index={idx} />
               </motion.div>
             ))}
           </div>
@@ -169,7 +169,7 @@ export default function Hero() {
           >
             {clips.map((clip, idx) => (
               <motion.div
-                key={`mobile-wrapper-${idx}`}
+                key={idx}
                 className="relative"
                 style={{
                   filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
@@ -178,12 +178,12 @@ export default function Hero() {
                   rotateY: idx < Math.floor(clips.length / 2) ? -7 : idx > Math.floor(clips.length / 2) ? 7 : 0
                 }}
               >
-                <RibbonClip key={`mobile-${idx}`} clip={clip} index={idx} compact />
+                <RibbonClip clip={clip} index={idx} compact />
               </motion.div>
             ))}
             {clips.map((clip, idx) => (
               <motion.div
-                key={`mobile-dup-wrapper-${idx}`}
+                key={idx}
                 className="relative"
                 style={{
                   filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
@@ -192,7 +192,7 @@ export default function Hero() {
                   rotateY: idx < Math.floor(clips.length / 2) ? -7 : idx > Math.floor(clips.length / 2) ? 7 : 0
                 }}
               >
-                <RibbonClip key={`mobile-dup-${idx}`} clip={clip} index={idx} compact />
+                <RibbonClip clip={clip} index={idx} compact />
               </motion.div>
             ))}
           </motion.div>
