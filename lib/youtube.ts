@@ -64,11 +64,17 @@ function decodeHtmlEntities(value: string): string {
 }
 
 function parseRssFeed(xml: string): LatestVideo[] {
-  const entries = Array.from(xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g));
+  // Manual regex loop to avoid `matchAll` so builds don't require downlevel iteration support.
+  const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+  const entries: string[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = entryRegex.exec(xml)) !== null) {
+    entries.push(match[1]);
+  }
 
   const videos =
     entries
-      .map(([, entry]) => {
+      .map((entry) => {
         const get = (pattern: RegExp) => entry.match(pattern)?.[1]?.trim() || "";
         const videoId = get(/<yt:videoId>([^<]+)<\/yt:videoId>/);
         const title = decodeHtmlEntities(get(/<title>([^<]+)<\/title>/));
