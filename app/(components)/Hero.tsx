@@ -1,201 +1,95 @@
 'use client';
 
-import { useMemo, useState, type MouseEvent } from "react";
-import { motion, useMotionValue, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
+import { useMemo } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import type { LatestVideo } from "@/lib/youtube";
 
-const CLIP_COUNT = 12;
-
-const clipPool = [
-  "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-  "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-  "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-  "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-  "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
+const FALLBACK_SHORTS: LatestVideo[] = [
+  {
+    title: "Terrace lightfall",
+    videoId: "zvq7S0R6fV4",
+    thumbnail: "https://i.ytimg.com/vi/zvq7S0R6fV4/hqdefault.jpg",
+    publishedAt: "2024-04-01T00:00:00Z"
+  },
+  {
+    title: "Alleys at dusk",
+    videoId: "8ZpCqT56Uv8",
+    thumbnail: "https://i.ytimg.com/vi/8ZpCqT56Uv8/hqdefault.jpg",
+    publishedAt: "2024-03-14T00:00:00Z"
+  },
+  {
+    title: "Lakeside still",
+    videoId: "C0DPdy98e4c",
+    thumbnail: "https://i.ytimg.com/vi/C0DPdy98e4c/hqdefault.jpg",
+    publishedAt: "2024-02-20T00:00:00Z"
+  },
+  {
+    title: "Patience on the terrace",
+    videoId: "Jsg8UmP0Fx8",
+    thumbnail: "https://i.ytimg.com/vi/Jsg8UmP0Fx8/hqdefault.jpg",
+    publishedAt: "2023-11-05T00:00:00Z"
+  }
 ];
 
-function generateClips() {
-  return Array.from({ length: CLIP_COUNT }, (_, idx) => clipPool[idx % clipPool.length]);
+function buildEmbedUrl(videoId: string) {
+  return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1&modestbranding=1&rel=0&showinfo=0`;
 }
 
-const RibbonClip = ({ clip, index, compact }: { clip: string; index: number; compact?: boolean }) => (
-  <motion.div
-    initial={{ y: 0 }}
-    animate={{
-      y: [0, -8, 0],
-      rotateZ: [0, -0.4, 0]
-    }}
-    transition={{
-      duration: 6 + (index % 3),
-      repeat: Infinity,
-      ease: "easeInOut"
-    }}
-  >
-    <motion.div
-      initial={{ y: 0 }}
-      animate={{ y: [-2, 2, -2] }}
-      transition={{ duration: 6 + (index % 5), repeat: Infinity, ease: "easeInOut" }}
-      className="
-        group relative overflow-hidden
-        h-[260px] w-[175px]
-        rounded-[26px]
-        border border-white/10
-        bg-white/5
-        shadow-[0_8px_25px_rgba(0,0,0,0.55)]
-        transition-transform duration-[1200ms]
-        hover:scale-[1.05]
-        will-change-transform
-      "
-    >
-      <video
-        src={clip}
-        muted
-        loop
-        playsInline
-        autoPlay
-        preload="none"
-        className="h-full w-full object-cover rounded-[26px]"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent rounded-[26px] pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 rounded-[26px] pointer-events-none" />
-    </motion.div>
-  </motion.div>
-);
+type HeroProps = {
+  shorts?: LatestVideo[];
+};
 
-export default function Hero() {
-  const clips = useMemo(() => generateClips(), []);
+export default function Hero({ shorts }: HeroProps) {
   const { scrollYProgress } = useScroll();
+  const float = useTransform(scrollYProgress, [0, 1], [0, -12]);
 
-  const slowFactor = useTransform(scrollYProgress, [0, 1], [1, 0.6]);
-  const ribbonOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.75]);
-  const ribbonShift = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
-  const logoScale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
-  const titleLift = useTransform(scrollYProgress, [0, 1], [0, 8]);
-  const mobileRibbonShift = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
-  const [desktopDuration, setDesktopDuration] = useState(32);
-  const [mobileDuration, setMobileDuration] = useState(46);
-
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const parallaxX = useTransform(mouseX, [-0.5, 0.5], ["-38px", "38px"]);
-  const parallaxY = useTransform(mouseY, [-0.5, 0.5], ["-18px", "18px"]);
-
-  const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
-    const { innerWidth, innerHeight } = window;
-    const offsetX = event.clientX / innerWidth - 0.5;
-    const offsetY = event.clientY / innerHeight - 0.5;
-    mouseX.set(offsetX);
-    mouseY.set(offsetY);
-  };
-
-  useMotionValueEvent(slowFactor, "change", (value) => {
-    const safe = Math.max(0.35, value);
-    setDesktopDuration(32 / safe);
-    setMobileDuration(46 / safe);
-  });
+  const framedShorts = useMemo(
+    () => (shorts && shorts.length > 0 ? shorts.slice(0, 5) : FALLBACK_SHORTS.slice(0, 4)),
+    [shorts]
+  );
 
   return (
-    <section
-      className="relative h-screen w-full overflow-hidden bg-brand-bg-primary text-brand-text-soft"
-      onMouseMove={handleMouseMove}
-    >
+    <section className="relative min-h-screen w-full overflow-hidden bg-brand-bg-primary text-brand-text-soft">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.045),transparent_58%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/75" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/75" />
       <div className="absolute inset-0 bg-[url('/grain.png')] opacity-[0.08] mix-blend-overlay pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_0%,rgba(0,0,0,0)_45%,rgba(0,0,0,0.25)_100%)] z-20" />
-      <motion.div
-        initial={{ x: "-150%", opacity: 0 }}
-        animate={{ x: "150%", opacity: 0.45 }}
-        transition={{ duration: 2.2, ease: "easeOut" }}
-        className="absolute top-0 left-0 w-[40%] h-full bg-gradient-to-r from-transparent via-white/20 to-transparent blur-[60px] pointer-events-none z-[50]"
-      />
 
-      <div className="absolute inset-0 flex items-start justify-center pt-28 overflow-hidden">
-        <motion.div
-          className="hidden md:flex h-[45vh] items-center justify-center translate-y-[14vh] will-change-transform"
-          style={{
-            opacity: ribbonOpacity,
-            x: ribbonShift,
-            ["--ribbon-duration" as any]: `${desktopDuration}s`,
-            willChange: "transform"
-          }}
-        >
-          <div className="ribbon-mask absolute inset-0 z-10" />
-          <div className="flex gap-6 md:gap-8 animate-ribbon-scroll will-change-transform">
-            {/* ORIGINAL CLIPS */}
-            {clips.map((clip, idx) => (
-              <motion.div
-                key={idx}
-                className="relative"
-                style={{
-                  filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
-                  scale: 1 - Math.abs(Math.floor(clips.length / 2) - idx) * 0.06,
-                  y: Math.abs(Math.floor(clips.length / 2) - idx) * 6,
-                  rotateY: idx < Math.floor(clips.length / 2) ? -7 : idx > Math.floor(clips.length / 2) ? 7 : 0
-                }}
-              >
-                <RibbonClip clip={clip} index={idx} />
-              </motion.div>
-            ))}
+      <div className="absolute -left-10 top-10 h-[340px] w-[340px] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,0,80,0.18),transparent_60%)] blur-3xl md:blur-[120px] opacity-70" />
+      <div className="absolute -right-16 bottom-0 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle_at_center,rgba(0,102,204,0.18),transparent_65%)] blur-3xl md:blur-[140px] opacity-70" />
 
-            {/* DUPLICATE CLIPS FOR LOOP */}
-            {clips.map((clip, idx) => (
-              <motion.div
-                key={idx}
-                className="relative"
-                style={{
-                  filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
-                  scale: 1 - Math.abs(Math.floor(clips.length / 2) - idx) * 0.06,
-                  y: Math.abs(Math.floor(clips.length / 2) - idx) * 6,
-                  rotateY: idx < Math.floor(clips.length / 2) ? -7 : idx > Math.floor(clips.length / 2) ? 7 : 0
-                }}
-              >
-                <RibbonClip clip={clip} index={idx} />
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+      <div className="relative mx-auto flex min-h-screen max-w-6xl md:max-w-7xl flex-col justify-center px-6 py-16 md:flex-row md:items-center md:justify-between md:px-10 md:py-24 gap-12 md:gap-16">
+        <div className="relative z-10 max-w-xl space-y-4">
+          <p className="text-xs uppercase tracking-[0.28em] text-logoBlue/70">Nepali Reels</p>
+          <h1 className="text-4xl md:text-5xl font-semibold text-white leading-tight">
+            Calm, cinematic shorts.
+          </h1>
+          <p className="text-base md:text-lg text-textsoft/80 max-w-lg">
+            Quiet, vertical glimpses—muted, looping, ready to skim.
+          </p>
+        </div>
 
         <motion.div
-          className="flex h-[110vh] w-full items-center justify-center md:hidden"
-          style={{ opacity: ribbonOpacity, y: mobileRibbonShift }}
+          className="relative z-10 flex w-full max-w-2xl items-center justify-end gap-4 md:gap-6"
+          style={{ y: float }}
         >
-          <div className="ribbon-mask absolute inset-0 z-10" />
-          <motion.div
-            className="flex h-[140%] flex-col gap-5 will-change-transform"
-            animate={{ y: ["0%", "-24%", "0%"] }}
-            transition={{ repeat: Infinity, duration: mobileDuration, ease: "easeInOut" }}
-          >
-            {clips.map((clip, idx) => (
-              <motion.div
-                key={idx}
-                className="relative"
-                style={{
-                  filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
-                  scale: 1 - Math.abs(Math.floor(clips.length / 2) - idx) * 0.06,
-                  y: Math.abs(Math.floor(clips.length / 2) - idx) * 6,
-                  rotateY: idx < Math.floor(clips.length / 2) ? -7 : idx > Math.floor(clips.length / 2) ? 7 : 0
-                }}
-              >
-                <RibbonClip clip={clip} index={idx} compact />
-              </motion.div>
-            ))}
-            {clips.map((clip, idx) => (
-              <motion.div
-                key={idx}
-                className="relative"
-                style={{
-                  filter: idx === Math.floor(clips.length / 2) ? "none" : "blur(1.2px)",
-                  scale: 1 - Math.abs(Math.floor(clips.length / 2) - idx) * 0.06,
-                  y: Math.abs(Math.floor(clips.length / 2) - idx) * 6,
-                  rotateY: idx < Math.floor(clips.length / 2) ? -7 : idx > Math.floor(clips.length / 2) ? 7 : 0
-                }}
-              >
-                <RibbonClip clip={clip} index={idx} compact />
-              </motion.div>
-            ))}
-          </motion.div>
+          {framedShorts.map((video, index) => (
+            <motion.div
+              key={video.videoId}
+              className="relative aspect-[9/16] w-28 overflow-hidden rounded-3xl border border-white/10 bg-black/30 shadow-[0_18px_38px_rgba(0,0,0,0.35)] backdrop-blur-md md:w-32 lg:w-36"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.08, duration: 0.8, ease: "easeOut" }}
+            >
+              <iframe
+                src={buildEmbedUrl(video.videoId)}
+                title={video.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="h-full w-full scale-[1.02] transform-gpu pointer-events-none"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/35" />
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>

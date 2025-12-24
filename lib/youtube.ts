@@ -5,9 +5,17 @@ export type LatestVideo = {
   publishedAt: string;
 };
 
+export type LatestVideosByType = {
+  landscape: LatestVideo[];
+  shorts: LatestVideo[];
+};
+
 const MAX_RESULTS = 12;
 const CHANNEL_ID = "UCP51fTdeBJXWGMhDssJ-wIw";
 const RSS_FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
+const SHORT_MAX_SECONDS = 60;
+const YT_API_URL = "https://www.googleapis.com/youtube/v3/videos";
+const YT_BATCH_SIZE = 50; // API limit is 50 ids per call
 
 const FALLBACK_VIDEOS: LatestVideo[] = [
   {
@@ -98,6 +106,68 @@ function parseRssFeed(xml: string): LatestVideo[] {
     .slice(0, MAX_RESULTS);
 }
 
+function parseIsoDurationToSeconds(duration: string): number {
+  const match = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/i.exec(duration);
+  if (!match) return Number.POSITIVE_INFINITY;
+  const [, h, m, s] = match;
+  return (Number(h || 0) * 3600) + (Number(m || 0) * 60) + Number(s || 0);
+}
+
+async function fetchDurations(videoIds: string[]): Promise<Record<string, number>> {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey || videoIds.length === 0) return {};
+
+  const idChunks: string[][] = [];
+  for (let i = 0; i < videoIds.length; i += YT_BATCH_SIZE) {
+    idChunks.push(videoIds.slice(i, i + YT_BATCH_SIZE));
+  }
+
+  const durations: Record<string, number> = {};
+  for (const chunk of idChunks) {
+    const params = new URLSearchParams({
+      part: "contentDetails",
+      id: chunk.join(","),
+      key: apiKey
+    });
+
+    const response = await fetch(`${YT_API_URL}?${params.toString()}`, {
+      next: { revalidate: 300 }
+    });
+
+    if (!response.ok) {
+      console.warn("YouTube duration lookup failed", response.status, response.statusText);
+      continue;
+    }
+
+    const data = await response.json();
+    for (const item of data.items || []) {
+      const id = item.id as string | undefined;
+      const isoDuration = item.contentDetails?.duration as string | undefined;
+      if (!id || !isoDuration) continue;
+      durations[id] = parseIsoDurationToSeconds(isoDuration);
+    }
+  }
+
+  return durations;
+}
+
+function splitByDuration(videos: LatestVideo[], durations: Record<string, number>): LatestVideosByType {
+  const landscape: LatestVideo[] = [];
+  const shorts: LatestVideo[] = [];
+
+  for (const video of videos) {
+    const seconds = durations[video.videoId];
+    const isShort = Number.isFinite(seconds) && seconds <= SHORT_MAX_SECONDS;
+    if (isShort) {
+      shorts.push(video);
+    } else {
+      landscape.push(video);
+    }
+  }
+
+  return { landscape, shorts };
+}
+
 async function fetchText(url: string): Promise<string> {
   const response = await fetch(url, { next: { revalidate: 300 } });
   if (!response.ok) {
@@ -110,16 +180,28 @@ async function fetchText(url: string): Promise<string> {
  * Fetch the latest videos for Nepali Reels via the public RSS feed.
  * Falls back to a local list when the feed is unavailable.
  */
-export async function getLatestVideos(): Promise<LatestVideo[]> {
+export async function getLatestVideos(): Promise<LatestVideosByType> {
   try {
     const xml = await fetchText(RSS_FEED_URL);
     const videos = parseRssFeed(xml);
-    if (videos.length > 0) {
-      return videos;
+    if (videos.length === 0) {
+      return { landscape: FALLBACK_VIDEOS.slice(0, MAX_RESULTS), shorts: [] };
     }
+
+    try {
+      const durations = await fetchDurations(videos.map((v) => v.videoId));
+      const split = splitByDuration(videos, durations);
+      if (split.landscape.length + split.shorts.length > 0) {
+        return split;
+      }
+    } catch (durationError) {
+      console.warn("Falling back to unsplit videos; duration lookup failed.", durationError);
+    }
+
+    return { landscape: videos, shorts: [] };
   } catch (error) {
     console.warn("Using fallback videos because the YouTube feed is unavailable.", error);
   }
 
-  return FALLBACK_VIDEOS.slice(0, MAX_RESULTS);
+  return { landscape: FALLBACK_VIDEOS.slice(0, MAX_RESULTS), shorts: [] };
 }

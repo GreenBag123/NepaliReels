@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { Metadata } from "next";
-import { getLatestVideos, type LatestVideo } from "@/lib/youtube";
+import { getLatestVideos } from "@/lib/youtube";
 import VideoGrid from "./video-grid";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function ExplorePage() {
-  const videos = await getLatestVideos();
+  const { landscape, shorts } = await getLatestVideos();
 
   return (
     <main className="relative min-h-screen bg-bg-primary pb-16 pt-20">
@@ -34,7 +34,32 @@ export default async function ExplorePage() {
           </div>
         </header>
 
-        <VideoGrid videos={videos} />
+        <section className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-[0.28em] text-logoBlue/70">Landscape</p>
+            <h2 className="text-2xl font-semibold text-white md:text-3xl">
+              Latest reels
+            </h2>
+          </div>
+          <VideoGrid videos={landscape} />
+        </section>
+
+        <section id="shorts" className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-[0.28em] text-logoBlue/70">Shorts</p>
+            <h2 className="text-2xl font-semibold text-white md:text-3xl">
+              Latest shorts
+            </h2>
+            <p className="max-w-2xl text-base text-textsoft">
+              Quick vertical clips straight from the feed.
+            </p>
+          </div>
+          <VideoGrid
+            videos={shorts}
+            gridClassName="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 md:gap-6"
+            cardAspectClassName="aspect-[9/16]"
+          />
+        </section>
       </div>
     </main>
   );

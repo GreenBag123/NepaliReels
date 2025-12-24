@@ -3,6 +3,7 @@ import { Manrope } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import GlobalBackground from "@/components/GlobalBackground";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-bg-primary text-textsoft">
       <body className={`${manrope.className} min-h-screen flex flex-col`}>
+        <GlobalBackground />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
