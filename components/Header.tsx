@@ -6,9 +6,10 @@ import Image from "next/image";
 import logo from "@/images/logo.png";
 
 const navItems = [
-  { label: "Explore", href: "/explore" },
+  { label: "About", href: "/about" },
+  { label: "Episodes", href: "/explore" },
   { label: "YouTube", href: "https://www.youtube.com/@nepalireelsglobal", external: true },
-  { label: "About", href: "/about" }
+  { label: "Contact", href: "/contact" }
 ];
 
 export default function Header() {
@@ -27,7 +28,7 @@ export default function Header() {
             className="h-8 w-auto"
             priority
           />
-          <span className="text-lg font-semibold tracking-wide">Nepali Reels</span>
+          <span className="sr-only">Nepali Reels</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-textsoft">

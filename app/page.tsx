@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { getLatestVideos, type LatestVideo } from "@/lib/youtube";
 import ReelGrid from "@/components/ReelGrid";
-import Hero from "./(components)/Hero";
 
 export const revalidate = 300;
 
@@ -26,21 +25,37 @@ const featuredVideos: LatestVideo[] = [
   }
 ];
 
+function pickStableSet<T>(items: T[], count: number, windowDays = 2): T[] {
+  if (!items || items.length === 0 || count <= 0) return [];
+  const windowIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24 * windowDays));
+  const result: T[] = [];
+  for (let i = 0; i < count && i < items.length; i++) {
+    const idx = (windowIndex + i) % items.length;
+    result.push(items[idx]);
+  }
+  return result;
+}
+
 export default async function Page() {
   const { landscape, shorts } = await getLatestVideos();
   const latest = landscape.slice(0, 6);
   const latestShorts = shorts.slice(0, 6);
+  const dynamicFeatured = pickStableSet(landscape, 3);
+
+  const featuredList = [...dynamicFeatured, ...featuredVideos].reduce<LatestVideo[]>((acc, item) => {
+    if (acc.some((v) => v.videoId === item.videoId)) return acc;
+    acc.push(item);
+    return acc;
+  }, []).slice(0, 3);
 
   return (
     <div className="bg-bg-primary">
-      <Hero shorts={latestShorts} />
-
       <div className="relative overflow-hidden bg-bg-primary">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-[340px] bg-gradient-to-b from-logoBlue/18 via-transparent to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[320px] bg-gradient-to-t from-bg-secondary via-transparent to-transparent" />
 
-        <div className="relative mx-auto max-w-6xl md:max-w-7xl px-6 md:px-10 pb-28 space-y-20">
-          <section className="pt-10 space-y-8">
+        <div className="relative mx-auto max-w-6xl md:max-w-7xl px-6 md:px-10 pb-24 space-y-16">
+          <section className="pt-6 space-y-8">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div className="space-y-2">
                 <p className="text-xs uppercase tracking-[0.28em] text-logoBlue/70">Featured</p>
@@ -53,7 +68,7 @@ export default async function Page() {
               </div>
             </div>
             <ReelGrid
-              videos={featuredVideos}
+              videos={featuredList}
               gridClassName="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
               cardAspectClassName="aspect-[16/9]"
               cardClassName="rounded-3xl md:rounded-[26px]"

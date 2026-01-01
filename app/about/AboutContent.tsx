@@ -109,7 +109,7 @@ export default function AboutContent() {
         </section>
 
         <section className="relative overflow-hidden rounded-[28px] border border-white/10 bg-brand-bg-secondary/80 px-6 py-10 shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(200,154,102,0.18),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(255,255,255,0.06),transparent_40%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(0,84,166,0.20),transparent_45%),radial-gradient(circle_at_82%_68%,rgba(214,40,40,0.16),transparent_42%)]" />
           <div className="relative flex flex-col gap-6 text-left md:flex-row md:items-center md:justify-between">
             <div className="space-y-3 max-w-xl">
               <p className="text-xs uppercase tracking-[0.3em] text-logoBlue">Join the reel</p>
