@@ -188,7 +188,7 @@ function splitByMeta(videos: LatestVideo[], metaById: Record<string, VideoMeta>)
     }
 
     const seconds = meta.seconds;
-    const hasDuration = Number.isFinite(seconds);
+    const hasDuration = typeof seconds === "number" && Number.isFinite(seconds);
     const isShortDuration = hasDuration && seconds <= SHORT_MAX_SECONDS;
     const isPortrait = meta.isPortrait === true;
     const isLandscapeThumb = meta.isPortrait === false;
