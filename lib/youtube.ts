@@ -13,7 +13,9 @@ export type LatestVideosByType = {
 const MAX_RESULTS = 12;
 const CHANNEL_ID = "UCP51fTdeBJXWGMhDssJ-wIw";
 const RSS_FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
+const LONGFORM_PLAYLIST_ID = "PLQIyheS7Ry1AItkEjGVBfBA9OthE4Gvek";
 const SHORT_MAX_SECONDS = 180;
+const YT_PLAYLIST_URL = "https://www.googleapis.com/youtube/v3/playlistItems";
 const YT_API_URL = "https://www.googleapis.com/youtube/v3/videos";
 const YT_BATCH_SIZE = 50; // API limit is 50 ids per call
 
@@ -133,6 +135,76 @@ function pickLargestThumbnail(thumbnails?: Record<string, { width?: number; heig
   return best;
 }
 
+function pickBestThumbnailUrl(
+  thumbnails?: Record<string, { url?: string; width?: number; height?: number }>
+): string {
+  if (!thumbnails) return "";
+  let bestUrl = "";
+  let bestArea = 0;
+  for (const value of Object.values(thumbnails)) {
+    if (!value?.url || !value.width || !value.height) continue;
+    const area = value.width * value.height;
+    if (area > bestArea) {
+      bestArea = area;
+      bestUrl = value.url;
+    }
+  }
+  return bestUrl;
+}
+
+async function fetchPlaylistVideos(playlistId: string): Promise<LatestVideo[]> {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey || !playlistId) return [];
+
+  const results: LatestVideo[] = [];
+  let pageToken: string | undefined;
+
+  while (results.length < MAX_RESULTS) {
+    const params = new URLSearchParams({
+      part: "snippet",
+      maxResults: "50",
+      playlistId,
+      key: apiKey
+    });
+    if (pageToken) params.set("pageToken", pageToken);
+
+    const response = await fetch(`${YT_PLAYLIST_URL}?${params.toString()}`, {
+      next: { revalidate: 300 }
+    });
+
+    if (!response.ok) {
+      console.warn("YouTube playlist lookup failed", response.status, response.statusText);
+      break;
+    }
+
+    const data = await response.json();
+    for (const item of data.items || []) {
+      const snippet = item.snippet;
+      const videoId = snippet?.resourceId?.videoId as string | undefined;
+      const title = snippet?.title ? decodeHtmlEntities(snippet.title) : "";
+      const publishedAt = snippet?.publishedAt as string | undefined;
+      const thumbnail =
+        pickBestThumbnailUrl(snippet?.thumbnails) ||
+        (videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : "");
+
+      if (!videoId || !title || !publishedAt) continue;
+      results.push({ title, videoId, thumbnail, publishedAt });
+      if (results.length >= MAX_RESULTS) break;
+    }
+
+    pageToken = data.nextPageToken;
+    if (!pageToken) break;
+  }
+
+  return results
+    .sort(
+      (a, b) =>
+        new Date(b.publishedAt).getTime() -
+        new Date(a.publishedAt).getTime()
+    )
+    .slice(0, MAX_RESULTS);
+}
+
 async function fetchVideoMeta(videoIds: string[]): Promise<Record<string, VideoMeta>> {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey || videoIds.length === 0) return {};
@@ -216,31 +288,47 @@ async function fetchText(url: string): Promise<string> {
  * Falls back to a local list when the feed is unavailable.
  */
 export async function getLatestVideos(): Promise<LatestVideosByType> {
+  const fallback = { landscape: FALLBACK_VIDEOS.slice(0, MAX_RESULTS), shorts: [] };
+  let playlistVideos: LatestVideo[] = [];
+
+  try {
+    playlistVideos = await fetchPlaylistVideos(LONGFORM_PLAYLIST_ID);
+  } catch (playlistError) {
+    console.warn("Using RSS because playlist lookup failed.", playlistError);
+  }
+
   try {
     const xml = await fetchText(RSS_FEED_URL);
     const videos = parseRssFeed(xml);
     if (videos.length === 0) {
-      return { landscape: FALLBACK_VIDEOS.slice(0, MAX_RESULTS), shorts: [] };
+      return playlistVideos.length > 0 ? { landscape: playlistVideos, shorts: [] } : fallback;
     }
 
+    let shorts: LatestVideo[] = [];
     try {
       const metaById = await fetchVideoMeta(videos.map((v) => v.videoId));
-      if (Object.keys(metaById).length === 0) {
-        // If we couldn't fetch durations (e.g., API key/config issue), stay safe: serve curated landscape-only.
-        return { landscape: FALLBACK_VIDEOS.slice(0, MAX_RESULTS), shorts: [] };
-      }
-      const split = splitByMeta(videos, metaById);
-      if (split.landscape.length + split.shorts.length > 0) {
-        return split;
+      if (Object.keys(metaById).length > 0) {
+        const split = splitByMeta(videos, metaById);
+        shorts = split.shorts;
+        if (playlistVideos.length > 0) {
+          return { landscape: playlistVideos, shorts };
+        }
+        if (split.landscape.length + split.shorts.length > 0) {
+          return split;
+        }
       }
     } catch (durationError) {
       console.warn("Falling back to unsplit videos; duration lookup failed.", durationError);
     }
 
-    return { landscape: videos, shorts: [] };
+    if (playlistVideos.length > 0) {
+      return { landscape: playlistVideos, shorts: [] };
+    }
+
+    return fallback;
   } catch (error) {
     console.warn("Using fallback videos because the YouTube feed is unavailable.", error);
   }
 
-  return { landscape: FALLBACK_VIDEOS.slice(0, MAX_RESULTS), shorts: [] };
+  return playlistVideos.length > 0 ? { landscape: playlistVideos, shorts: [] } : fallback;
 }
