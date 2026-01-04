@@ -38,7 +38,7 @@ export default async function ExplorePage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-[0.28em] text-logoBlue">Landscape</p>
-              <h2 className="text-2xl font-semibold text-brand-text-strong md:text-3xl">Latest reels</h2>
+              <h2 className="text-2xl font-semibold text-brand-text-strong md:text-3xl">Latest episodes</h2>
               <p className="text-sm text-brand-text-soft/90">Full-length frames with room to breathe.</p>
             </div>
           </div>

@@ -13,7 +13,7 @@ export type LatestVideosByType = {
 const MAX_RESULTS = 12;
 const CHANNEL_ID = "UCP51fTdeBJXWGMhDssJ-wIw";
 const RSS_FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
-const SHORT_MAX_SECONDS = 60;
+const SHORT_MAX_SECONDS = 180;
 const YT_API_URL = "https://www.googleapis.com/youtube/v3/videos";
 const YT_BATCH_SIZE = 50; // API limit is 50 ids per call
 
@@ -113,7 +113,27 @@ function parseIsoDurationToSeconds(duration: string): number {
   return (Number(h || 0) * 3600) + (Number(m || 0) * 60) + Number(s || 0);
 }
 
-async function fetchDurations(videoIds: string[]): Promise<Record<string, number>> {
+type VideoMeta = {
+  seconds?: number;
+  isPortrait?: boolean;
+};
+
+function pickLargestThumbnail(thumbnails?: Record<string, { width?: number; height?: number }>) {
+  if (!thumbnails) return null;
+  let best: { width?: number; height?: number } | null = null;
+  let bestArea = 0;
+  for (const value of Object.values(thumbnails)) {
+    if (!value?.width || !value?.height) continue;
+    const area = value.width * value.height;
+    if (area > bestArea) {
+      bestArea = area;
+      best = value;
+    }
+  }
+  return best;
+}
+
+async function fetchVideoMeta(videoIds: string[]): Promise<Record<string, VideoMeta>> {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey || videoIds.length === 0) return {};
 
@@ -122,10 +142,10 @@ async function fetchDurations(videoIds: string[]): Promise<Record<string, number
     idChunks.push(videoIds.slice(i, i + YT_BATCH_SIZE));
   }
 
-  const durations: Record<string, number> = {};
+  const metaById: Record<string, VideoMeta> = {};
   for (const chunk of idChunks) {
     const params = new URLSearchParams({
-      part: "contentDetails",
+      part: "contentDetails,snippet",
       id: chunk.join(","),
       key: apiKey
     });
@@ -143,22 +163,37 @@ async function fetchDurations(videoIds: string[]): Promise<Record<string, number
     for (const item of data.items || []) {
       const id = item.id as string | undefined;
       const isoDuration = item.contentDetails?.duration as string | undefined;
-      if (!id || !isoDuration) continue;
-      durations[id] = parseIsoDurationToSeconds(isoDuration);
+      if (!id) continue;
+      const seconds = isoDuration ? parseIsoDurationToSeconds(isoDuration) : undefined;
+      const bestThumb = pickLargestThumbnail(item.snippet?.thumbnails);
+      const isPortrait = bestThumb
+        ? Number(bestThumb.height) > Number(bestThumb.width)
+        : undefined;
+      metaById[id] = { seconds, isPortrait };
     }
   }
 
-  return durations;
+  return metaById;
 }
 
-function splitByDuration(videos: LatestVideo[], durations: Record<string, number>): LatestVideosByType {
+function splitByMeta(videos: LatestVideo[], metaById: Record<string, VideoMeta>): LatestVideosByType {
   const landscape: LatestVideo[] = [];
   const shorts: LatestVideo[] = [];
 
   for (const video of videos) {
-    const seconds = durations[video.videoId];
-    const isShort = Number.isFinite(seconds) && seconds <= SHORT_MAX_SECONDS;
-    if (isShort) {
+    const meta = metaById[video.videoId];
+    if (!meta) {
+      shorts.push(video);
+      continue;
+    }
+
+    const seconds = meta.seconds;
+    const hasDuration = Number.isFinite(seconds);
+    const isShortDuration = hasDuration && seconds <= SHORT_MAX_SECONDS;
+    const isPortrait = meta.isPortrait === true;
+    const isLandscapeThumb = meta.isPortrait === false;
+
+    if (isPortrait || isShortDuration || (!isLandscapeThumb && !hasDuration)) {
       shorts.push(video);
     } else {
       landscape.push(video);
@@ -189,8 +224,12 @@ export async function getLatestVideos(): Promise<LatestVideosByType> {
     }
 
     try {
-      const durations = await fetchDurations(videos.map((v) => v.videoId));
-      const split = splitByDuration(videos, durations);
+      const metaById = await fetchVideoMeta(videos.map((v) => v.videoId));
+      if (Object.keys(metaById).length === 0) {
+        // If we couldn't fetch durations (e.g., API key/config issue), stay safe: serve curated landscape-only.
+        return { landscape: FALLBACK_VIDEOS.slice(0, MAX_RESULTS), shorts: [] };
+      }
+      const split = splitByMeta(videos, metaById);
       if (split.landscape.length + split.shorts.length > 0) {
         return split;
       }

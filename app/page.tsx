@@ -51,30 +51,42 @@ export default async function Page() {
   return (
     <div className="bg-bg-primary">
       <div className="relative overflow-hidden bg-bg-primary">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-[340px] bg-gradient-to-b from-logoBlue/18 via-transparent to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[320px] bg-gradient-to-t from-bg-secondary via-transparent to-transparent" />
+        <section className="relative min-h-screen w-full overflow-hidden">
+          <div className="pointer-events-none absolute inset-0 bg-[url('/hero-baclground.png')] bg-cover bg-center" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/35 to-black/80" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.06),transparent_55%)]" />
 
-        <div className="relative mx-auto max-w-6xl md:max-w-7xl px-6 md:px-10 pb-24 space-y-16">
-          <section className="pt-6 space-y-8">
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.28em] text-logoBlue/70">Featured</p>
-                <h2 className="text-3xl md:text-4xl font-semibold text-white relative after:content-[''] after:block after:w-24 after:h-[2px] after:bg-gradient-to-r after:from-logoBlue after:to-logoRed after:mt-3">
-                  Signature reels
-                </h2>
-                <p className="text-sm text-textsoft max-w-2xl">
-                  A tighter, handpicked set of long-form cuts that set the tone.
-                </p>
-              </div>
+          <div className="relative mx-auto max-w-6xl md:max-w-7xl px-6 md:px-10 pt-24 pb-16">
+            <div className="max-w-3xl space-y-5">
+              <p className="text-xs uppercase tracking-[0.28em] text-logoBlue/70">Featured</p>
+              <h1 className="text-4xl md:text-5xl font-semibold text-white leading-tight">
+                Stories of Nepal and the Nepali People
+              </h1>
+              <p className="text-base md:text-lg text-textsoft">
+                Documenting Nepali life, culture, memory, and migration - from villages and cities to Nepali communities around the world.
+              </p>
+              <p className="text-sm text-textsoft">
+                Selected long-form episodes documenting Nepali life, culture, and memory.
+              </p>
             </div>
-            <ReelGrid
-              videos={featuredList}
-              gridClassName="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
-              cardAspectClassName="aspect-[16/9]"
-              cardClassName="rounded-3xl md:rounded-[26px]"
-              staggerMs={90}
-            />
-          </section>
+
+            <div className="mt-10">
+              <ReelGrid
+                videos={featuredList}
+                gridClassName="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                cardAspectClassName="aspect-[16/9]"
+                cardClassName="rounded-3xl md:rounded-[26px]"
+                staggerMs={90}
+              />
+            </div>
+          </div>
+        </section>
+
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[340px] bg-gradient-to-b from-logoBlue/18 via-transparent to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[320px] bg-gradient-to-t from-bg-secondary via-transparent to-transparent" />
+
+          <div className="relative mx-auto max-w-6xl md:max-w-7xl px-6 md:px-10 pb-24 space-y-16">
 
           <div className="pointer-events-none h-px w-full bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
@@ -83,7 +95,7 @@ export default async function Page() {
               <div className="space-y-2">
                 <p className="text-xs uppercase tracking-[0.28em] text-logoBlue/70">Explore</p>
                 <h2 className="text-2xl md:text-3xl font-semibold text-white">
-                  Latest reels
+                  Latest episodes
                 </h2>
                 <p className="text-sm text-textsoft max-w-2xl">
                   Fresh, chronological drops in landscape for a calmer viewing run.
@@ -91,7 +103,7 @@ export default async function Page() {
               </div>
               <Link
                 href="/explore"
-                className="text-sm font-semibold text-logoBlue underline-offset-4 transition hover:text-logoBlue/80 hover:underline"
+                className="rounded-full bg-logoBlue px-4 py-2 text-sm font-semibold text-white transition hover:bg-logoBlue/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-logoBlue/60"
               >
                 View all
               </Link>
@@ -112,24 +124,25 @@ export default async function Page() {
               <div className="space-y-2">
                 <p className="text-xs uppercase tracking-[0.28em] text-logoBlue/70">Shorts</p>
                 <h2 className="text-2xl md:text-3xl font-semibold text-white">
-                  Latest shorts
+                  Browse our shorts
                 </h2>
                 <p className="text-sm text-textsoft max-w-xl">
-                  Quick, vertical moments—compact and easy to skim.
+                  Quick vertical moments, separate from our long-form focus.
                 </p>
               </div>
               <Link
                 href="/explore#shorts"
-                className="text-sm font-semibold text-logoBlue underline-offset-4 transition hover:text-logoBlue/80 hover:underline"
+                className="rounded-full bg-logoBlue px-4 py-2 text-sm font-semibold text-white transition hover:bg-logoBlue/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-logoBlue/60"
               >
                 View all shorts
               </Link>
             </div>
             <ReelGrid
               videos={latestShorts}
-              gridClassName="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4"
+              gridClassName="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6"
               cardAspectClassName="aspect-[9/16]"
-              staggerMs={50}
+              cardClassName="rounded-2xl"
+              staggerMs={40}
               emptyText="No shorts yet."
             />
           </section>
@@ -152,6 +165,7 @@ export default async function Page() {
           </section>
         </div>
       </div>
+    </div>
     </div>
   );
 }
